@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO-YEE // My World</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #050508;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f0f5;
+            --text-muted: #666673;
+            --accent-glow: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            --accent-purple: linear-gradient(135deg, #b100ff 0%, #00e3ff 100%);
+            --cubic-bezier: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 40px 20px;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(79, 172, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(177, 0, 255, 0.05) 0%, transparent 40%);
+        }
+
+        /* 头部设计 - 简约大气 */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.5rem;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, #fff 0%, #888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+        }
+
+        /* 导航网格 - 20个图标 */
+        .nav-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 25px;
+            max-width: 1100px;
+            width: 100%;
+            perspective: 1000px;
+        }
+
+        /* 响应式断点 */
+        @media (max-width: 1024px) { .nav-container { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 768px) { .nav-container { grid-template-columns: repeat(2, 1fr); } }
+
+        /* 单个导航卡片 */
+        .nav-item {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: border-color 0.5s var(--cubic-bezier), background-color 0.5s var(--cubic-bezier);
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.8) translateY(30px);
+        }
+
+        /* 卡片光效遮罩 */
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--accent-glow);
+            opacity: 0;
+            transition: opacity 0.5s var(--cubic-bezier);
+            z-index: 0;
+            mix-blend-mode: overlay;
+        }
+
+        /* 悬浮状态 */
+        .nav-item:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-item:hover::before {
+            opacity: 0.15;
+        }
+
+        /* 非线性动画的核心：流体图标容器 */
+        .icon-wrapper {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            z-index: 1;
+        }
+
+        /* 图标背景装饰球 - 产生非线性形变 */
+        .icon-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 35% 65% 70% 30% / 30% 40% 60% 70%; /* 不规则晶体 */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.6s var(--cubic-bezier);
+        }
+
+        .nav-item:hover .icon-bg {
+            border-radius: 50%;
+            background: var(--accent-purple);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 227, 255, 0.3);
+            border-color: transparent;
+        }
+
+        /* SVG 图标样式 */
+        .icon-wrapper svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: var(--text-main);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            z-index: 2;
+            transition: stroke 0.4s var(--cubic-bezier), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* 弹性预摆动 */
+        }
+
+        .nav-item:hover svg {
+            stroke: #fff;
+            transform: scale(1.2) rotate(8deg);
+        }
+
+        /* 网址标题 */
+        .nav-title {
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--text-main);
+            z-index: 1;
+            letter-spacing: 0.05rem;
+            transition: color 0.3s;
+        }
+
+        /* 网址简介 */
+        .nav-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            z-index: 1;
+            transition: color 0.3s;
+            text-align: center;
+            max-width: 90%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-item:hover .nav-title {
+            color: #fff;
+        }
+        
+        .nav-item:hover .nav-desc {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 点击水波纹特效 */
+        .ripple {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: scale(0);
+            pointer-events: none;
+            z-index: 3;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header">
+        <h1>Sky Nexus</h1>
+        <p>寰宇视界</p>
+    </header>
+
+    <div class="nav-container" id="grid">
+        </div>
+
+    <script>
+        // 20个前卫站点数据配置
+        const sites = [
+            { name: "Alpha AI", desc: "Google", url: "https://www.google.com", icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" },
+            { name: "Cyber Space", desc: "热心网友", url: "https://github.com", icon: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" },
+            { name: "Vector Lab", desc: "在线课程", url: "https://www.coursera.org", icon: "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" },
+            { name: "Neural Link", desc: "二次元已死", url: "https://www.bilibili.com", icon: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 6v6l4 2" },
+            { name: "Meta Core", desc: "澳洲英语", url: "https://www.ytaxx.com", icon: "M16.5 9.4 7.55 4.24a1.79 1.79 0 0 0-1.8 0l-2.18 1.26a1.79 1.79 0 0 0-.9 1.56v5.88a1.79 1.79 0 0 0 .9 1.56l2.18 1.26a1.79 1.79 0 0 0 1.8 0l8.95-5.17a1.79 1.79 0 0 0 .9-1.56V11a1.79 1.79 0 0 0-.9-1.6z" },
+            { name: "Genesis", desc: "贾维斯助手", url: "https://gemini.google.com/app", icon: "M12 2L2 22h20L12 2z" },
+            { name: "Helix Data", desc: "建模激励", url: "https://www.nexprint.cn/zh/U00008518879/home", icon: "M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" },
+            { name: "Void Design", desc: "IOS互联", url: "https://www.yamdisplay.com/", icon: "M3 3h18v18H3V3z" },
+            { name: "Pulse Wave", desc: "封面提取", url: "https://trace.moe/?utm_sourc", icon: "M22 12h-4l-3 9L9 3l-3 9H2" },
+            { name: "Crypt Flow", desc: "AI生图", url: "https://civitai.com", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" },
+            { name: "Aero Synth", desc: "Sunshine", url: "https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2configuration.html", icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0zM15 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" },
+            { name: "Nova Ray", desc: "VP博客", url: "https://www.wenpblog.com/person.html", icon: "M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" },
+            { name: "Chrono OS", desc: "邮件中心", url: "https://mail.google.com/mail/u/0/#inbox", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
+            { name: "Prism Code", desc: "zerotier", url: "https://central.zerotier.com/FSWjH8atncZ8a5SYqJNREA/network", icon: "M16 18l6-6-6-6M8 6l-6 6 6 6" },
+            { name: "Nexus API", desc: "cloudflare", url: "https://dash.cloudflare.com/sign-up", icon: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" },
+            { name: "Infinitum", desc: "BAIDU网盘", url: "https://pan.baidu.com/disk/main?from=homeFlow#/index?category=all", icon: "M7 11a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm10 0a4 4 0 1 1 0 8 4 4 0 0 1 0-8z" },
+            { name: "Spectra AI", desc: "二次元之源", url: "https://sakuras.me/", icon: "M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" },
+            { name: "Grid Tech", desc: "流量钱包", url: "https://www.douyin.com", icon: "M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z" },
+            { name: "Atmosphere", desc: "Spotify", url: "https://www.spotify.com", icon: "M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" },
+            { name: "Singularity", desc: "Netflix", url: "https://www.netflix.com", icon: "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707-.707" }
+        ];
+
+        const grid = document.getElementById('grid');
+
+        // 动态渲染20个网格
+        sites.forEach(site => {
+            const item = document.createElement('a');
+            item.className = 'nav-item';
+            item.href = site.url;
+            item.target = '_blank';
+            item.innerHTML = `
+                <div class="icon-wrapper">
+                    <div class="icon-bg"></div>
+                    <svg viewBox="0 0 24 24"><path d="${site.icon}"/></svg>
+                </div>
+                <div class="nav-title">${site.name}</div>
+                <div class="nav-desc">${site.desc}</div>
+            `;
+            grid.appendChild(item);
+
+            // 监听点击，添加非线性水波反馈
+            item.addEventListener('click', function(e) {
+                let ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                this.appendChild(ripple);
+                let d = Math.max(this.clientWidth, this.clientHeight);
+                ripple.style.width = ripple.style.height = d + 'px';
+                let rect = this.getBoundingClientRect();
+                ripple.style.left = e.clientX - rect.left - d/2 + 'px';
+                ripple.style.top = e.clientY - rect.top - d/2 + 'px';
+                
+                gsap.to(ripple, { transform: 'scale(2)', opacity: 0, duration: 0.6, ease: "power2.out", onComplete: () => ripple.remove() });
+            });
+        });
+
+        // GSAP 实现初次加载的非线性入场动画 (弹性、交错延迟)
+        window.addEventListener('DOMContentLoaded', () => {
+            gsap.to("#header", { opacity: 1, y: 0, duration: 1, ease: "power4.out" });
+            gsap.to(".nav-item", {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: {
+                    amount: 0.4, 
+                    grid: "auto",
+                    from: "center" // 从中心向四周非线性扩散扩散开
+                },
+                ease: "back.out(1.4)" // 带有轻微的回弹效果
+            });
+        });
+
+        // 鼠标在卡片移动时的非线性微倾斜（3D视差效果）
+        document.querySelectorAll('.nav-item').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width/2;
+                const y = e.clientY - rect.top - rect.height/2;
+                
+                // 限制最大旋转角度，保持简约感
+                gsap.to(card, {
+                    rotateX: -y * 0.08,
+                    rotateY: x * 0.08,
+                    transformPerspective: 600,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card, {
+                    rotateX: 0,
+                    rotateY: 0,
+                    duration: 0.6,
+                    ease: "elastic.out(1.2, 0.5)" // 离开时非线性弹簧复位
+                });
+            });
+        });
+    </script>
+</body>
+</html>
